@@ -358,6 +358,7 @@ body {
   background: var(--opt-bg); color: var(--opt-color);
 }
 .tx-card-badge.staged { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+.tx-card-badge.folder { background: #E3F2FD; color: #1565C0; border: 1px solid #90CAF9; }
 
 .tx-card-file-info {
   font-size: 11px; color: var(--text-muted); margin-bottom: 8px; padding: 6px 10px;

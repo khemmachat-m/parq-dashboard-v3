@@ -28,7 +28,7 @@ export function goStep(n) {
   if (n === 2) autoLoadMasterFromFolder().then(() => renderSetupUploadList());
   if (n === 3) {
     document.getElementById('finalFolderName').textContent = S.folderName || '';
-    renderStep3TxGrid();
+    autoLoadTxFromFolder().then(() => renderStep3TxGrid());
   }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -44,6 +44,27 @@ async function autoLoadMasterFromFolder() {
       const result = Papa.parse(text, { header: true, skipEmptyLines: true });
       if (result.data.length > 0) {
         S.setupStaged[cfg.key] = { rows: result.data, filename: cfg.filename, text, fromFolder: true };
+      }
+    } catch (_) { /* file not found — skip */ }
+  }
+}
+
+// ── Auto-load exported TX files already in folder ────────────────
+async function autoLoadTxFromFolder() {
+  if (!S.folderHandle) return;
+  for (const tab of ['cwo', 'cases', 'ppm']) {
+    if (S.setupStagedTx[tab]) continue; // already staged by user
+    try {
+      const text = await readCsvFromFolder(S.folderHandle, TX_STANDARD[tab]);
+      if (!text) continue;
+      const result = Papa.parse(text, { header: true, skipEmptyLines: true });
+      if (result.data.length > 0) {
+        S.setupStagedTx[tab] = {
+          originalName: TX_STANDARD[tab],
+          standardName: TX_STANDARD[tab],
+          text, rows: result.data,
+          fromFolder: true,
+        };
       }
     } catch (_) { /* file not found — skip */ }
   }
@@ -147,25 +168,27 @@ export function renderStep3TxGrid() {
     const std    = TX_STANDARD[tab];
 
     if (staged) {
+      const fromFolder = staged.fromFolder;
+      const badge = fromFolder
+        ? `<span class="tx-card-badge folder">📂 Found in folder</span>`
+        : `<span class="tx-card-badge staged">✅ Staged</span>`;
       return `
         <div class="tx-upload-card staged" id="txcard-${tab}">
           <div class="tx-card-top">
             <span class="tx-card-icon">${cfg.icon}</span>
             <div class="tx-card-info">
               <div class="tx-card-label">${cfg.label}</div>
-              <div class="tx-card-stored">→ saved as: ${std}</div>
+              <div class="tx-card-stored">${fromFolder ? `📂 ${staged.originalName}` : `→ saved as: ${std}`}</div>
             </div>
-            <span class="tx-card-badge staged">✅ Staged</span>
+            ${badge}
           </div>
           <div class="tx-card-file-info">
             <span class="fname">${staged.originalName}</span>
-            <span class="arrow">→</span>
-            <span class="stdname">${std}</span>
             &nbsp;·&nbsp; ${staged.rows.length.toLocaleString()} rows
           </div>
           <div class="tx-card-btn-row">
             <label class="btn-tx-upload reupload" style="cursor:pointer">
-              🔄 Replace file
+              🔄 Re-upload
               <input type="file" accept=".csv" style="display:none"
                 onchange="window._app.handleSetupTxUpload(event,'${tab}')">
             </label>
