@@ -66,7 +66,11 @@ export function aggregateCWO(rows) {
     locCounts[loc] = (locCounts[loc] || 0) + 1;
     const evt = getEventLabel(r);
     evtCounts[evt] = (evtCounts[evt] || 0) + 1;
-    const asset = r.Asset_Name || '';
+    const assetName = r.Asset_Name || '';
+    const assetLoc  = r.Location_FullName || '';
+    const asset = assetName
+      ? (assetLoc ? `${assetName} (${assetLoc})` : assetName)
+      : '';
     if (asset) assetCounts[asset] = (assetCounts[asset] || 0) + 1;
   }
   return {
@@ -97,7 +101,11 @@ export function aggregateCases(rows) {
     locCounts[loc] = (locCounts[loc] || 0) + 1;
     const evt = getEventLabel(r);
     evtCounts[evt] = (evtCounts[evt] || 0) + 1;
-    const asset = r.Asset_Name || ' (' || r.Location_FullName || ')';
+    const assetName = r.Asset_Name || '';
+    const assetLoc  = r.Location_FullName || '';
+    const asset = assetName
+      ? (assetLoc ? `${assetName} (${assetLoc})` : assetName)
+      : '';
     if (asset) assetCounts[asset] = (assetCounts[asset] || 0) + 1;
   }
   return {
