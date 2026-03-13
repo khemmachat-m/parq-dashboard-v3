@@ -29,10 +29,10 @@ export function getEventLabel(row) {
   if (/aircon|a\.c\.|a\/c|temperature|cooling|hvac|chiller/i.test(txt))             return 'Aircon / Temperature';
 
   // ── Air Quality / Environment ─────────────────────────────────────
-  if (/pm 2\.5|pm2\.5|ระบายกลิ่น|กลิ่น|air quality/i.test(txt))        return 'Air Quality';
+  if (/pm 2\.5|pm2\.5|ระบายกลิ่น|กลิ่น|air quality/i.test(txt))                    return 'Air Quality';
 
-  // ── Lighting (catch missed patterns) ─────────────────────────────
-  if (/ไฟเพดาน|ไฟหลืบ|ไฟเส้น|ไฟหน้า/i.test(txt))                        return 'Lighting Faulty';
+  // ── Lighting (catch missed patterns first) ────────────────────────
+  if (/ไฟเพดาน|ไฟหลืบ|ไฟเส้น|ไฟหน้า/i.test(txt))                                  return 'Lighting Faulty';
 
   // ── Lighting (Thai + English) ────────────────────────────────────
   if (/โคมไฟ|ไฟดับ|ไฟไม่ติด|ไฟไม่มี|แสงสว่าง|หลอดไฟ/i.test(txt))                   return 'Lighting Faulty';
@@ -46,8 +46,8 @@ export function getEventLabel(row) {
   if (/น้ำหยด|น้ำรั่ว|น้ำไหล|น้ำท่วม|ท่อน้ำ|คราบน้ำ|พื้นเปียก/i.test(txt))        return 'Water Leak / Plumbing';
   if (/water|leak|plumb|drain|pipe|flood|overflow/i.test(txt))                        return 'Water Leak / Plumbing';
 
-  // ── Water Overflow (missed by current pattern) ────────────────────
-  if (/น้ำเอ่อ|น้ำล้น|ท่อตัน|ท่อระบาย/i.test(txt))                      return 'Water Leak / Plumbing';
+  // ── Water Overflow (missed by general pattern) ────────────────────
+  if (/น้ำเอ่อ|น้ำล้น|ท่อตัน|ท่อระบาย/i.test(txt))                                  return 'Water Leak / Plumbing';
 
   // ── Lift / Escalator (Thai + English) ───────────────────────────
   if (/ลิฟต์|ลิฟท์|บันไดเลื่อน/i.test(txt))                                          return 'Lift / Elevator';
@@ -71,21 +71,18 @@ export function getEventLabel(row) {
   if (/fire|alarm|smoke|sprinkler/i.test(txt))                                         return 'Fire Alarm';
 
   // ── Electrical (Thai + English) ──────────────────────────────────
-  if (/ไฟฝั่ง|ไฟปราสาท|สวิตช์|ปลั๊ก|ไฟรั่ว/i.test(txt))                              return 'Electrical';
+  if (/ไฟฝั่ง|ไฟปราสาท|สวิตช์|ปลั๊ก|ไฟรั่ว|สายไฟ|แผงไฟ/i.test(txt))                return 'Electrical';
   if (/electric|power|socket|outlet|breaker|fuse/i.test(txt))                         return 'Electrical';
 
-  // ── Floor / Tile ─────────────────────────────────────────────────
-  if (/กระเบื้อง|พื้น(?!เปียก)|ฝ้า/i.test(txt))                                       return 'Floor / Tile';
+  // ── Floor / Tile / Ceiling ───────────────────────────────────────
+  if (/กระเบื้อง|ฝ้า/i.test(txt))                                                      return 'Floor / Tile';
   if (/floor|tile|carpet|ceiling/i.test(txt))                                          return 'Floor / Tile';
+
+  // ── Structural / Fixture ─────────────────────────────────────────
+  if (/หลุด|ร่วง|แตก|ชำรุด|เสียหาย|ครอบ|สแตนเลส|อะลูมิเนียม/i.test(txt))           return 'Structural / Fixture';
 
   // ── Pest Control ─────────────────────────────────────────────────
   if (/แมลง|หนู|แมลงสาบ|pest|insect|rodent|cockroach|rat/i.test(txt))                return 'Pest Control';
-  
-  // ── Structural / Fixture ──────────────────────────────────────────
-  if (/หลุด|ร่วง|แตก|ชำรุด|เสียหาย|ครอบ|สแตนเลส|อะลูมิเนียม/i.test(txt)) return 'Structural / Fixture';
-
-  // ── Electrical / Wiring ───────────────────────────────────────────
-  if (/สายไฟ|สายไฟตก|แผงไฟ/i.test(txt))                                  return 'Electrical';
 
   return 'Other';
 }
@@ -95,6 +92,78 @@ export function getCaseEventLabel(row) {
   const desc = (row.EventType_Description || '').trim();
   return (desc && desc !== '0') ? desc : 'Unknown';
 }
+
+// ─── PPM CATEGORY FUNCTIONS ──────────────────────────────────────────────────
+
+/**
+ * Return a specific task category label for a PPM row.
+ * Reads from PPM_Task_Category (enriched column) if already set,
+ * otherwise derives it from MasterWorkOrderTitle.
+ */
+export function getPPMTaskCategoryLabel(row) {
+  // Prefer pre-enriched column
+  const saved = (row.PPM_Task_Category || '').trim();
+  if (saved && saved !== 'Other') return saved;
+
+  const t  = (row.MasterWorkOrderTitle || row.Name || row.Title || '').trim();
+  const tl = t.toLowerCase();
+  if (!t) return 'Uncategorised';
+
+  // ── TEST / Demo ──────────────────────────────────────────────────
+  if (/^test|^for ops app testing/i.test(t))                                    return 'TEST / Demo';
+
+  // ── Soft Services ────────────────────────────────────────────────
+  if (/pest control|termite/i.test(tl))                                         return 'Pest Control';
+  if (/water plant|รดน้ำ|trim branch|ตัดแต่ง|ground cover|พืชคลุม|remove weed|กำจัดวัชพืช|fertiliz|ปุ๋ย|planting|เพราะชำ|restore ground|ปลูกซ่อม|rental plant|ดูแลรักษาต้นไม้|loosening the soil|inspect every stake|replace the herb|พรวนดิน|chemicals for disease|ป้องกันโรค/i.test(tl)) return 'Horticulture';
+  if (/operate team work schedule/i.test(tl))                                   return 'Operations Scheduling';
+  if (/cleaning|clean ahu room|ทำความสะอาดห้องเครื่อง/i.test(tl))             return 'Cleaning';
+
+  // ── Fire & Life Safety ───────────────────────────────────────────
+  if (/fire extinguisher|fire hose cabinet|fire suppression|fire protection shaft|fire pump|preaction|fire alarm/i.test(tl)) return 'Fire Safety';
+  if (/emergency light|exit sign|central battery/i.test(tl))                   return 'Emergency Lighting';
+
+  // ── HVAC ────────────────────────────────────────────────────────
+  if (/chiller/i.test(tl))                                                      return 'Chiller';
+  if (/cooling tower/i.test(tl))                                                return 'Cooling Tower';
+  if (/air handling unit|\bahu\b|\bahe\b|\bpau\b|primary air handling/i.test(tl)) return 'Air Handling Unit (AHU)';
+  if (/fan coil unit|\bfcu\b/i.test(tl))                                        return 'Fan Coil Unit (FCU)';
+  if (/split type/i.test(tl))                                                   return 'Split Type AC';
+  if (/exhaust fan|pressurized air fan|kitchen exhaust|kitchen make.?fan|fresh air fan|carpark.*fan|jet fan|smoke extraction|make.?up fan/i.test(tl)) return 'Ventilation / Fans';
+
+  // ── Electrical ──────────────────────────────────────────────────
+  if (/generator|gcp of generator/i.test(tl))                                  return 'Generator';
+  if (/transformer|high.?volt|switchgear|capacitor bank|main distribution board|\bmdb\b|emergen.*distribution|sub distribution|load center|busduct|motor control center|ahu.*distribution|grounding|central \d+ floor|central.*wing/i.test(tl)) return 'Electrical Distribution';
+  if (/lightning protection/i.test(tl))                                         return 'Lightning Protection';
+
+  // ── Plumbing & Water ────────────────────────────────────────────
+  if (/chilled water pump|condenser water pump|cold water.*pump|booster pump/i.test(tl)) return 'Water Pumps';
+  if (/drainage|sewage|waste water|recycle water|recycle tank|underground water tank|roof water tank|swimming pool|fountain|sanitary shaft|pressure reducing valve/i.test(tl)) return 'Plumbing / Water Systems';
+
+  // ── Lifts & Escalators ──────────────────────────────────────────
+  if (/lift|elevator|escalator/i.test(tl))                                      return 'Lifts & Escalators';
+
+  // ── Security Systems ────────────────────────────────────────────
+  if (/cctv|public address/i.test(tl))                                          return 'CCTV & PA System';
+
+  // ── Other Hard Services ──────────────────────────────────────────
+  if (/gas station/i.test(tl))                                                  return 'Gas Station';
+
+  return 'Uncategorised';
+}
+
+/**
+ * Return 'Hard Service' or 'Soft Service' for a PPM row.
+ * Hard Service = Engineering / Technical maintenance.
+ * Soft Service = Cleaning, Horticulture, Pest Control, Operations Scheduling.
+ */
+export function getPPMMainCategoryLabel(row) {
+  const task = getPPMTaskCategoryLabel(row);
+  const SOFT = new Set(['Cleaning', 'Pest Control', 'Horticulture', 'Operations Scheduling']);
+  if (task === 'TEST / Demo') return 'TEST / Demo';
+  return SOFT.has(task) ? 'Soft Service' : 'Hard Service';
+}
+
+// ─── STATUS & SLA HELPERS ────────────────────────────────────────────────────
 
 /** Detect closed / cancelled / active status from a CWO or Cases row */
 export function getRowStatus(row) {
@@ -114,6 +183,8 @@ export function getSLAStatus(row) {
   if (/fail|false|no/.test(sla)) return 'fail';
   return 'pass';
 }
+
+// ─── AGGREGATION ─────────────────────────────────────────────────────────────
 
 export function aggregateCWO(rows) {
   const total = rows.length;
@@ -167,7 +238,7 @@ export function aggregateCases(rows) {
     priCounts[pri] = (priCounts[pri] || 0) + 1;
     const loc = r.Location_Name || r.LocationId || 'Unknown';
     locCounts[loc] = (locCounts[loc] || 0) + 1;
-    const evt = getCaseEventLabel(r);   // ← new
+    const evt = getCaseEventLabel(r);
     evtCounts[evt] = (evtCounts[evt] || 0) + 1;
     const assetName = r.Asset_Name || '';
     const assetLoc  = r.Location_FullName || '';
@@ -191,7 +262,7 @@ export function aggregateCases(rows) {
 export function aggregatePPM(rows) {
   const total = rows.length;
   let closed = 0, inProgress = 0, overdue = 0, cancelled = 0;
-  const freqCounts = {}, zoneCounts = {}, catCounts = {};
+  const freqCounts = {}, zoneCounts = {}, taskCatCounts = {}, mainCatCounts = {};
   for (const r of rows) {
     const isOD  = /true|1|yes/i.test(r.IsOverdue   || '');
     const isCxl = /true|1|yes/i.test(r.IsCancelled || '');
@@ -200,14 +271,25 @@ export function aggregatePPM(rows) {
     else if (isOD)  overdue++;
     else if (isAct) inProgress++;
     else            closed++;
+
     const freq = r.FrequencyType_Name || r.FrequencyId || 'Unknown';
     freqCounts[freq] = (freqCounts[freq] || 0) + 1;
+
     const zone = r.Location_FloorNo
       ? `Floor ${r.Location_FloorNo}`
       : (r.Location_Name || r.LocationId || 'Unknown');
     zoneCounts[zone] = (zoneCounts[zone] || 0) + 1;
-    const cat = r.ServiceCategory_Name || r.EventType_Description || r.TaskDescription || 'Uncategorised';
-    catCounts[cat] = (catCounts[cat] || 0) + 1;
+
+    // Use enriched columns if present, else derive on-the-fly
+    const taskCat = (r.PPM_Task_Category && r.PPM_Task_Category !== 'Uncategorised')
+      ? r.PPM_Task_Category
+      : getPPMTaskCategoryLabel(r);
+    taskCatCounts[taskCat] = (taskCatCounts[taskCat] || 0) + 1;
+
+    const mainCat = (r.PPM_Main_Category && r.PPM_Main_Category !== 'Uncategorised')
+      ? r.PPM_Main_Category
+      : getPPMMainCategoryLabel(r);
+    mainCatCounts[mainCat] = (mainCatCounts[mainCat] || 0) + 1;
   }
   const nonCxl = total - cancelled;
   return {
@@ -217,7 +299,9 @@ export function aggregatePPM(rows) {
     compliancePct: _pct(closed,  nonCxl || 1),
     frequencies:   toSortedArr(freqCounts, 8),
     zones:         toSortedArr(zoneCounts, 6),
-    categories:    toSortedArr(catCounts, 10),
+    // 'categories' kept for backward compat — now uses task categories
+    categories:    toSortedArr(taskCatCounts, 12),
+    mainCategories: toSortedArr(mainCatCounts),
   };
 }
 
@@ -238,7 +322,9 @@ export function evtCountsFromRowsCases(rows) {
 export function catCountsFromRows(rows) {
   const c = {};
   rows.forEach(r => {
-    const k = r.ServiceCategory_Name || r.EventType_Description || r.TaskDescription || 'Uncategorised';
+    const k = (r.PPM_Task_Category && r.PPM_Task_Category !== 'Uncategorised')
+      ? r.PPM_Task_Category
+      : getPPMTaskCategoryLabel(r);
     c[k] = (c[k] || 0) + 1;
   });
   return c;

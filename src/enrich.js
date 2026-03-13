@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 import { S } from './state.js';
 import { lookup } from './masters.js';
-import { getEventLabel } from './aggregate.js';
+import { getEventLabel, getPPMTaskCategoryLabel, getPPMMainCategoryLabel } from './aggregate.js';
 
 export function enrichCases(rows, M) {
   const { priority, location, assetByTag, eventTypeByCode } = M;
@@ -104,6 +104,9 @@ export function enrichPPM(rows, M) {
     if (fr.Name) out.FrequencyType_Name = fr.Name;
     if (fr.Code) out.FrequencyType_Code = fr.Code;
     out.Status_Label = PPM_STATUS[+row.StatusId] || 'Unknown';
+    // Keyword-derived category columns — user can review/correct in the enriched CSV
+    out.PPM_Task_Category = getPPMTaskCategoryLabel(out);
+    out.PPM_Main_Category = getPPMMainCategoryLabel(out);
     return out;
   });
 }

@@ -8,9 +8,19 @@ export function generatePPMHtml(lw, pw, cmp, lwStart, lwEnd, pwStart, pwEnd, rep
   const lwLabel = `${fmtDate(lwStart)} – ${fmtDate(lwEnd)}`;
   const pwLabel = `${fmtDate(pwStart)} – ${fmtDate(pwEnd)}`;
   const PRIMARY = '#1A4A8A', DARK = '#0D2B5C', ACCENT = '#3A7EBF', LIGHT = '#E3F2FD', PW_CLR = '#5B8FC9';
+  const HARD_CLR = '#1A4A8A', SOFT_CLR = '#E87329';
   const top = cmp[0] || { type: 'N/A', lw: 0, pw: 0 };
   const donutTotal = lw.total || 1;
   const badgeCls = lw.compliancePct >= 80 ? 'comp-good' : lw.compliancePct >= 60 ? 'comp-warn' : 'comp-bad';
+
+  // Hard vs Soft Service split from mainCategories
+  const hardLW  = (lw.mainCategories || []).find(x => x.label === 'Hard Service');
+  const softLW  = (lw.mainCategories || []).find(x => x.label === 'Soft Service');
+  const hardCount = hardLW ? hardLW.count : 0;
+  const softCount = softLW ? softLW.count : 0;
+  const pct = (n, t) => t ? Math.round(n / t * 100) : 0;
+  const hardPct = pct(hardCount, lw.total);
+  const softPct = pct(softCount, lw.total);
 
   const body = `
 <div class="page-title">WEEKLY OPS MEETING — Planned Preventive Maintenance (PPM) | The PARQ</div>
@@ -28,9 +38,20 @@ export function generatePPMHtml(lw, pw, cmp, lwStart, lwEnd, pwStart, pwEnd, rep
           <div class="donut-center"><div class="big">${lw.total}</div><div class="sub">PPM orders</div></div>
         </div></div>
         <div>
-          <div class="chart-label">PPM Orders by Frequency</div>
-          ${hbars(lw.frequencies, ACCENT, '110px')}
-          <div class="chart-label" style="margin-top:10px;">PPM Orders by Zone / Floor</div>
+          <div class="chart-label">Hard Service vs Soft Service</div>
+          <div style="display:flex;gap:6px;margin-bottom:10px;">
+            <div style="flex:1;background:${HARD_CLR};color:#fff;border-radius:6px;padding:8px 6px;text-align:center;">
+              <div style="font-size:20px;font-weight:700;">${hardCount}</div>
+              <div style="font-size:10px;opacity:.85;">Hard Service</div>
+              <div style="font-size:12px;font-weight:600;">${hardPct}%</div>
+            </div>
+            <div style="flex:1;background:${SOFT_CLR};color:#fff;border-radius:6px;padding:8px 6px;text-align:center;">
+              <div style="font-size:20px;font-weight:700;">${softCount}</div>
+              <div style="font-size:10px;opacity:.85;">Soft Service</div>
+              <div style="font-size:12px;font-weight:600;">${softPct}%</div>
+            </div>
+          </div>
+          <div class="chart-label">PPM Orders by Zone / Floor</div>
           ${hbars(lw.zones, PW_CLR, '110px')}
         </div>
       </div>
@@ -60,6 +81,7 @@ export function generatePPMHtml(lw, pw, cmp, lwStart, lwEnd, pwStart, pwEnd, rep
       <div class="highlight-box">
         <p style="color:#888;font-style:italic;">Auto-generated PPM report — add narrative highlights manually.</p><br>
         <p><strong>Top Category:</strong> ${top.type} — ${top.lw} orders last week (vs ${top.pw} previous week).</p><br>
+        <p><strong>Hard Service: ${hardCount} orders (${hardPct}%)</strong> &nbsp;|&nbsp; <strong>Soft Service: ${softCount} orders (${softPct}%)</strong></p><br>
         <p><strong>Overdue: ${lw.overdue} order(s)</strong> require follow-up or rescheduling.</p><br>
         <p><strong>Overall Compliance: ${lw.compliancePct}%</strong> (${lw.closed} closed / ${lw.total} total this week).</p>
       </div>
@@ -80,7 +102,7 @@ export function generatePPMHtml(lw, pw, cmp, lwStart, lwEnd, pwStart, pwEnd, rep
   </div>
 </div>
 <div class="bottom-row">
-  <div class="sec-header" style="margin-top:12px;">Weekly PPM Volume Comparison</div>
+  <div class="sec-header" style="margin-top:12px;">Weekly PPM Volume Comparison by Task Category</div>
   <div class="bottom-grid">
     <div><div class="chart-label" style="margin-bottom:8px;">${pwLabel}: ${pw.total} PPM Orders by Category</div><canvas id="pwChart" height="200"></canvas></div>
     <div><div class="chart-label" style="margin-bottom:8px;">${lwLabel}: ${lw.total} PPM Orders by Category</div><canvas id="lwChart" height="200"></canvas></div>
