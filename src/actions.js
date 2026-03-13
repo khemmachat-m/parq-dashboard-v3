@@ -120,7 +120,8 @@ export function runGenerate() {
     html = generateCWOHtml(lw, pw, cmp, week.monday, week.sunday, pw0.monday, pw0.sunday, reportDate);
   } else if (S.tab === 'cases') {
     const lw  = aggregateCases(lwRows), pw = aggregateCases(pwRows);
-    const cmp = buildCmp(evtCountsFromRowsCases(lwRows), evtCountsFromRowsCases(pwRows));   // ← new    html = generateCaseHtml(lw, pw, cmp, week.monday, week.sunday, pw0.monday, pw0.sunday, reportDate);
+    const cmp = buildCmp(evtCountsFromRowsCases(lwRows), evtCountsFromRowsCases(pwRows));   // ← new    
+    html = generateCaseHtml(lw, pw, cmp, week.monday, week.sunday, pw0.monday, pw0.sunday, reportDate);
   } else {
     const lw  = aggregatePPM(lwRows), pw = aggregatePPM(pwRows);
     const cmp = buildCmp(catCountsFromRows(lwRows), catCountsFromRows(pwRows));
