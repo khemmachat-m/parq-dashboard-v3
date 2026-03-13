@@ -21,7 +21,7 @@ export function generateCWOHtml(lw, pw, cmp, lwStart, lwEnd, pwStart, pwEnd, rep
 <div class="main-grid">
   <div class="left-col">
     <div>
-      <div class="sec-header">Case Summary (Last Week)</div>
+      <div class="sec-header">CWO Summary (Last Week)</div>
       <div class="summary-inner">
         <div><div class="donut-wrap"><canvas id="donutChart" width="190" height="190"></canvas>
           <div class="donut-center"><div class="big">${lw.total}</div><div class="sub">Total cases</div></div>
@@ -45,7 +45,7 @@ export function generateCWOHtml(lw, pw, cmp, lwStart, lwEnd, pwStart, pwEnd, rep
       </div>
     </div>
     <div>
-      <div class="sec-header">Top Event Type by Week</div>
+      <div class="sec-header">Top Problem Type by Week</div>
       <div class="two-col">
         <div><div class="week-label">${pwLabel}</div>${hbars(pw.events, PW_CLR, '130px')}</div>
         <div><div class="week-label">${lwLabel}</div>${hbars(lw.events, PRIMARY, '130px')}</div>
@@ -55,7 +55,7 @@ export function generateCWOHtml(lw, pw, cmp, lwStart, lwEnd, pwStart, pwEnd, rep
   </div>
   <div class="right-col">
     <div>
-      <div class="sec-header">Highlight Cases (Last Week: ${lwLabel})</div>
+      <div class="sec-header">Highlight CWO (Last Week: ${lwLabel})</div>
       <div class="highlight-box">
         <p style="color:#888;font-style:italic;">Auto-generated report — add narrative highlights manually or via a highlights CSV.</p><br>
         <p><strong>Top Issue:</strong> ${top.type} — ${top.lw} cases last week (vs ${top.pw} previous week).</p><br>
