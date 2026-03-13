@@ -25,12 +25,28 @@ export function goStep(n) {
   document.getElementById('stepCard1').classList.toggle('hidden', n !== 1);
   document.getElementById('stepCard2').classList.toggle('hidden', n !== 2);
   document.getElementById('stepCard3').classList.toggle('hidden', n !== 3);
-  if (n === 2) renderSetupUploadList();
+  if (n === 2) autoLoadMasterFromFolder().then(() => renderSetupUploadList());
   if (n === 3) {
     document.getElementById('finalFolderName').textContent = S.folderName || '';
     renderStep3TxGrid();
   }
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Auto-load master data files already in folder ─────────────────
+async function autoLoadMasterFromFolder() {
+  if (!S.folderHandle) return;
+  for (const cfg of MASTER_CFG) {
+    if (S.setupStaged[cfg.key]) continue; // already staged (user uploaded)
+    try {
+      const text = await readCsvFromFolder(S.folderHandle, cfg.filename);
+      if (!text) continue;
+      const result = Papa.parse(text, { header: true, skipEmptyLines: true });
+      if (result.data.length > 0) {
+        S.setupStaged[cfg.key] = { rows: result.data, filename: cfg.filename, text, fromFolder: true };
+      }
+    } catch (_) { /* file not found — skip */ }
+  }
 }
 
 // ── Step 1: choose working folder ─────────────────────────────────
@@ -62,11 +78,22 @@ export async function setupSelectFolder() {
 export function renderSetupUploadList() {
   const list = document.getElementById('setupUploadList');
   list.innerHTML = MASTER_CFG.map(cfg => {
-    const staged = S.setupStaged[cfg.key];
-    const done   = !!staged;
+    const staged     = S.setupStaged[cfg.key];
+    const done       = !!staged;
+    const fromFolder = staged && staged.fromFolder;
+    const icon       = done ? (fromFolder ? '📂' : '✅') : (cfg.req ? '📋' : '📄');
+    const statusTag  = done
+      ? (fromFolder
+          ? `<span class="upload-row-status folder">Found in folder</span>`
+          : `<span class="upload-row-status ok">Staged</span>`)
+      : `<label class="btn-upload-row upload" style="cursor:pointer">
+           Upload
+           <input type="file" accept=".csv" style="display:none"
+             onchange="window._app.handleSetupMasterUpload(event,'${cfg.key}')">
+         </label>`;
     return `
       <div class="upload-row ${done ? 'done' : ''}" id="urow-${cfg.key}">
-        <span class="upload-row-icon">${done ? '✅' : (cfg.req ? '📋' : '📄')}</span>
+        <span class="upload-row-icon">${icon}</span>
         <div class="upload-row-info">
           <div class="upload-row-label">
             <span class="req-dot ${cfg.req ? 'req' : 'opt'}"></span>
@@ -76,13 +103,14 @@ export function renderSetupUploadList() {
           <div class="upload-row-filename">${done ? staged.filename : cfg.filename}</div>
           ${done ? `<div style="font-size:10px;color:var(--green);font-weight:600">✓ ${staged.rows.length.toLocaleString()} rows ready</div>` : ''}
         </div>
-        ${done
-          ? `<span class="upload-row-status ok">Staged</span>`
-          : `<label class="btn-upload-row upload" style="cursor:pointer">
-               Upload
-               <input type="file" accept=".csv" style="display:none"
-                 onchange="window._app.handleSetupMasterUpload(event,'${cfg.key}')">
-             </label>`}
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          ${statusTag}
+          ${done ? `<label class="btn-upload-row reupload" style="cursor:pointer;font-size:10px;padding:3px 8px">
+              🔄 Re-upload
+              <input type="file" accept=".csv" style="display:none"
+                onchange="window._app.handleSetupMasterUpload(event,'${cfg.key}')">
+            </label>` : ''}
+        </div>
       </div>`;
   }).join('');
   updateSetupProgress();
