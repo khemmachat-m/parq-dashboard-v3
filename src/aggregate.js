@@ -17,17 +17,61 @@ export function getEventLabel(row) {
   if (desc && desc !== '0' && desc !== '') return desc;
   const txt = (row.Description || row.Subject || row.Name || row.Title || '').toLowerCase();
   if (!txt) return 'Other';
-  if (/aircon|a\.c\.|a\/c|temperature|cooling|hvac|chiller/i.test(txt))    return 'Aircon / Temperature';
-  if (/light|lamp|bulb|luminaire|led|fluorescent/i.test(txt))              return 'Lighting Faulty';
-  if (/water|leak|plumb|drain|pipe|flood|overflow/i.test(txt))             return 'Water Leak / Plumbing';
-  if (/door|lock|access|gate|barrier|hinge|handle/i.test(txt))             return 'Door / Lock';
-  if (/lift|elevator|escalator/i.test(txt))                                return 'Lift / Elevator';
-  if (/clean|dirt|stain|hygiene|waste|rubbish|trash/i.test(txt))           return 'Cleaning';
-  if (/fire|alarm|smoke|sprinkler/i.test(txt))                             return 'Fire Alarm';
-  if (/floor|tile|carpet/i.test(txt))                                      return 'Floor / Tile';
-  if (/electric|power|socket|outlet|breaker|fuse/i.test(txt))              return 'Electrical';
-  if (/toilet|wc|bathroom|sanitary|sewage/i.test(txt))                     return 'Sanitary / WC';
-  if (/pest|insect|rodent|cockroach|rat/i.test(txt))                       return 'Pest Control';
+
+  // ── TEST / Demo records ───────────────────────────────────────────
+  if (/^test|test cwo|test case|test l\d/i.test(txt))                      return 'TEST / Demo';
+
+  // ── AC water drip (must check before general water) ──────────────
+  if (/น้ำแอร์|น้ำ.*แอร์.*หยด|ac.*water|water.*ac|vsd.?fault|vsd.?error/i.test(txt)) return 'Aircon / Temperature';
+
+  // ── Aircon / Temperature (Thai + English) ────────────────────────
+  if (/แอร์|หนาว|ร้อน|อุณหภูมิ|สลับแอร์|ตรวจเช็คแอร์|ปรับอุณหภูมิ/i.test(txt))   return 'Aircon / Temperature';
+  if (/aircon|a\.c\.|a\/c|temperature|cooling|hvac|chiller/i.test(txt))             return 'Aircon / Temperature';
+
+  // ── Lighting (Thai + English) ────────────────────────────────────
+  if (/โคมไฟ|ไฟดับ|ไฟไม่ติด|ไฟไม่มี|แสงสว่าง|หลอดไฟ/i.test(txt))                   return 'Lighting Faulty';
+  if (/light|lamp|bulb|luminaire|led|fluorescent/i.test(txt))                         return 'Lighting Faulty';
+
+  // ── Sanitary / WC (Thai + English — before water to avoid conflict) ──
+  if (/ห้องน้ำ|โถชักโครก|โถฉี่|ห้องส้วม|อ่างล้างมือ/i.test(txt))                    return 'Sanitary / WC';
+  if (/toilet|wc|bathroom|sanitary|sewage/i.test(txt))                                return 'Sanitary / WC';
+
+  // ── Water Leak / Plumbing (Thai + English) ───────────────────────
+  if (/น้ำหยด|น้ำรั่ว|น้ำไหล|น้ำท่วม|ท่อน้ำ|คราบน้ำ|พื้นเปียก/i.test(txt))        return 'Water Leak / Plumbing';
+  if (/water|leak|plumb|drain|pipe|flood|overflow/i.test(txt))                        return 'Water Leak / Plumbing';
+
+  // ── Lift / Escalator (Thai + English) ───────────────────────────
+  if (/ลิฟต์|ลิฟท์|บันไดเลื่อน/i.test(txt))                                          return 'Lift / Elevator';
+  if (/lift|elevator|escalator/i.test(txt))                                            return 'Lift / Elevator';
+
+  // ── Door / Lock / Access (Thai + English) ───────────────────────
+  if (/ประตู|ล็อค|ล๊อค|กุญแจ|บานประตู/i.test(txt))                                   return 'Door / Lock';
+  if (/door|lock|access|gate|barrier|hinge|handle/i.test(txt))                        return 'Door / Lock';
+
+  // ── Cleaning (Thai + English) ────────────────────────────────────
+  if (/แม่บ้าน|ทำความสะอาด|เช็ดน้ำ|กวาด/i.test(txt))                                 return 'Cleaning';
+  if (/clean|dirt|stain|hygiene|waste|rubbish|trash/i.test(txt))                      return 'Cleaning';
+
+  // ── Log Sheet / Routine Checks ───────────────────────────────────
+  if (/log sheet|จดมิเตอร์|จด log|ตรวจเช็ค|จดค่า|meter reading/i.test(txt))          return 'Log Sheet / Routine';
+
+  // ── Display / Signage ────────────────────────────────────────────
+  if (/จอภาพ|จอโฆษณา|display|screen|signage/i.test(txt))                              return 'Display / Signage';
+
+  // ── Fire Alarm (English only — Thai fire alarms use fire|alarm) ──
+  if (/fire|alarm|smoke|sprinkler/i.test(txt))                                         return 'Fire Alarm';
+
+  // ── Electrical (Thai + English) ──────────────────────────────────
+  if (/ไฟฝั่ง|ไฟปราสาท|สวิตช์|ปลั๊ก|ไฟรั่ว/i.test(txt))                              return 'Electrical';
+  if (/electric|power|socket|outlet|breaker|fuse/i.test(txt))                         return 'Electrical';
+
+  // ── Floor / Tile ─────────────────────────────────────────────────
+  if (/กระเบื้อง|พื้น(?!เปียก)|ฝ้า/i.test(txt))                                       return 'Floor / Tile';
+  if (/floor|tile|carpet|ceiling/i.test(txt))                                          return 'Floor / Tile';
+
+  // ── Pest Control ─────────────────────────────────────────────────
+  if (/แมลง|หนู|แมลงสาบ|pest|insect|rodent|cockroach|rat/i.test(txt))                return 'Pest Control';
+
   return 'Other';
 }
 
