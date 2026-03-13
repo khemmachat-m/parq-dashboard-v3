@@ -6,7 +6,8 @@ import { S } from './state.js';
 import { TX_CFG, TX_ENRICHED, DATE_FIELDS } from './config.js';
 import { enrich, enrichForTab } from './enrich.js';
 import { fmtDate, fmtWk, pad } from './utils.js';
-import { aggregateCWO, aggregateCases, aggregatePPM, evtCountsFromRows, catCountsFromRows, buildCmp } from './aggregate.js';
+// import { aggregateCWO, aggregateCases, aggregatePPM, evtCountsFromRows, catCountsFromRows, buildCmp } from './aggregate.js'; <- Old
+import { aggregateCWO, aggregateCases, aggregatePPM, evtCountsFromRows, evtCountsFromRowsCases, catCountsFromRows, buildCmp } from './aggregate.js'; // <- New
 import { generateCWOHtml }  from './reports/cwoHtml.js';
 import { generateCaseHtml } from './reports/caseHtml.js';
 import { generatePPMHtml }  from './reports/ppmHtml.js';
@@ -119,8 +120,7 @@ export function runGenerate() {
     html = generateCWOHtml(lw, pw, cmp, week.monday, week.sunday, pw0.monday, pw0.sunday, reportDate);
   } else if (S.tab === 'cases') {
     const lw  = aggregateCases(lwRows), pw = aggregateCases(pwRows);
-    const cmp = buildCmp(evtCountsFromRows(lwRows), evtCountsFromRows(pwRows));
-    html = generateCaseHtml(lw, pw, cmp, week.monday, week.sunday, pw0.monday, pw0.sunday, reportDate);
+    const cmp = buildCmp(evtCountsFromRowsCases(lwRows), evtCountsFromRowsCases(pwRows));   // ← new    html = generateCaseHtml(lw, pw, cmp, week.monday, week.sunday, pw0.monday, pw0.sunday, reportDate);
   } else {
     const lw  = aggregatePPM(lwRows), pw = aggregatePPM(pwRows);
     const cmp = buildCmp(catCountsFromRows(lwRows), catCountsFromRows(pwRows));

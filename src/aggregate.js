@@ -31,6 +31,12 @@ export function getEventLabel(row) {
   return 'Other';
 }
 
+/** Return event label for Cases — uses enriched EventType_Description directly */
+export function getCaseEventLabel(row) {
+  const desc = (row.EventType_Description || '').trim();
+  return (desc && desc !== '0') ? desc : 'Unknown';
+}
+
 /** Detect closed / cancelled / active status from a CWO or Cases row */
 export function getRowStatus(row) {
   const s = (row.StatusId || row.Status || row.WorkOrderStatus || row.CaseStatus || '').toString().toLowerCase();
@@ -99,7 +105,7 @@ export function aggregateCases(rows) {
     priCounts[pri] = (priCounts[pri] || 0) + 1;
     const loc = r.Location_Name || r.LocationId || 'Unknown';
     locCounts[loc] = (locCounts[loc] || 0) + 1;
-    const evt = getEventLabel(r);
+    const evt = getCaseEventLabel(r);   // ← new
     evtCounts[evt] = (evtCounts[evt] || 0) + 1;
     const assetName = r.Asset_Name || '';
     const assetLoc  = r.Location_FullName || '';
@@ -153,9 +159,17 @@ export function aggregatePPM(rows) {
   };
 }
 
+// For CWO — uses keyword matching
 export function evtCountsFromRows(rows) {
   const c = {};
   rows.forEach(r => { const e = getEventLabel(r); c[e] = (c[e] || 0) + 1; });
+  return c;
+}
+
+// For Cases — uses enriched EventType_Description directly
+export function evtCountsFromRowsCases(rows) {
+  const c = {};
+  rows.forEach(r => { const e = getCaseEventLabel(r); c[e] = (c[e] || 0) + 1; });
   return c;
 }
 
