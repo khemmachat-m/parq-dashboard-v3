@@ -51,7 +51,7 @@ export function generateCWOHtml(lw, pw, cmp, lwStart, lwEnd, pwStart, pwEnd, rep
         <div><div class="week-label">${lwLabel}</div>${hbars(lw.events, PRIMARY, '130px')}</div>
       </div>
     </div>
-    ${lw.assets.length ? `<div><div class="sec-header">Top Assets with CWO (Last Week)</div>${hbars(lw.assets, '#3A7EBF', '160px')}</div>` : ''}
+    ${lw.assets.length ? `<div><div class="sec-header">Top Assets with CWO (Last Week)</div>${hbars(lw.assets, '#3A7EBF', '220px')}</div>` : ''}
   </div>
   <div class="right-col">
     <div>
