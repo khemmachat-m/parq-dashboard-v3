@@ -52,9 +52,8 @@ export function enrichCWO(rows, M) {
     if (top.Name)         out.TopLocation_Name     = top.Name;
     if (top.FullName)     out.TopLocation_FullName = top.FullName;
     if (top.LocationCode) out.TopLocation_Code     = top.LocationCode;
-    // Asset join: AssetId (CWO row) → EquipmentTag (Assets.csv)
-    const tagKey = (row.AssetId || '').trim().toLowerCase();
-    const a = (assetByTag && tagKey) ? (assetByTag[tagKey] || {}) : {};
+    // Asset join: AssetId (CWO row) → Id (Assets.csv)
+    const a = lookup(asset, row.AssetId);
     out.Asset_Id                = a.Id                || '';
     out.Asset_LocationId        = a.LocationId        || '';
     out.Asset_Manufacturer      = a.Manufacturer      || '';
