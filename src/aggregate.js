@@ -285,9 +285,8 @@ export function aggregatePPM(rows) {
     const freq = r.FrequencyType_Name || r.FrequencyId || 'Unknown';
     freqCounts[freq] = (freqCounts[freq] || 0) + 1;
 
-    const zone = r.Location_FloorNo
-      ? `Floor ${r.Location_FloorNo}`
-      : (r.Location_Name || r.LocationId || 'Unknown');
+    // Group by Location_Custom (Floor | Room | Zone) — blank → 'Building-wide'
+    const zone = (r.Location_Custom || '').trim() || 'Building-wide';
     zoneCounts[zone] = (zoneCounts[zone] || 0) + 1;
 
     // Use enriched columns if present, else derive on-the-fly
@@ -308,7 +307,7 @@ export function aggregatePPM(rows) {
     overduePct:    _pct(overdue, total),
     compliancePct: _pct(closed,  nonCxl || 1),
     frequencies:   toSortedArr(freqCounts, 8),
-    zones:         toSortedArr(zoneCounts, 6),
+    zones:         toSortedArr(zoneCounts, 15),
     // 'categories' kept for backward compat — now uses task categories
     categories:    toSortedArr(taskCatCounts, 12),
     mainCategories: toSortedArr(mainCatCounts),

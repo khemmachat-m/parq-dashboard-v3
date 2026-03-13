@@ -51,8 +51,10 @@ export function generatePPMHtml(lw, pw, cmp, lwStart, lwEnd, pwStart, pwEnd, rep
               <div style="font-size:12px;font-weight:600;">${softPct}%</div>
             </div>
           </div>
-          <div class="chart-label">PPM Orders by Zone / Floor</div>
-          ${hbars(lw.zones, PW_CLR, '110px')}
+          <div class="chart-label" style="margin-top:8px;">PPM Orders by Location (Top 15)</div>
+          <div style="position:relative;height:220px;">
+            <canvas id="zoneChart"></canvas>
+          </div>
         </div>
       </div>
       <div class="stats-row" style="margin-top:10px;">
@@ -111,6 +113,45 @@ export function generatePPMHtml(lw, pw, cmp, lwStart, lwEnd, pwStart, pwEnd, rep
 <div class="footnote">Data Source: PARQ_PPM_Enriched.csv &nbsp;|&nbsp; Last Week: ${lwLabel} (${lw.total} records) &nbsp;|&nbsp; Previous Week: ${pwLabel} (${pw.total} records) &nbsp;|&nbsp; Generated: ${fmtDate(reportDate)}</div>
 <script>
 new Chart(document.getElementById('donutChart'),{type:'doughnut',data:{labels:['Closed','In Progress','Overdue','Cancelled'],datasets:[{data:[${lw.closed},${lw.inProgress},${lw.overdue},${lw.cancelled}],backgroundColor:['${PRIMARY}','#E87329','#D9534F','#CCCCCC'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:false,cutout:'62%',plugins:{legend:{display:true,position:'bottom',labels:{font:{size:10},boxWidth:12,padding:8}},tooltip:{callbacks:{label:ctx=>\` \${ctx.label}: \${ctx.raw} (\${Math.round(ctx.raw/${donutTotal}*100)}%)\`}}}}});
+(function(){
+  const zLabels = ${JSON.stringify(lw.zones.map(e => e.label))};
+  const zData   = ${JSON.stringify(lw.zones.map(e => e.count))};
+  const maxVal  = Math.max(...zData, 1);
+  new Chart(document.getElementById('zoneChart'), {
+    type: 'bar',
+    data: {
+      labels: zLabels,
+      datasets: [{ data: zData, backgroundColor: '${ACCENT}', borderRadius: 3, barThickness: 12 }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => \` \${ctx.raw} orders\` } }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: Math.ceil(maxVal * 1.15),
+          ticks: { font: { size: 9 }, maxTicksLimit: 5 },
+          grid: { color: '#eee' }
+        },
+        y: {
+          ticks: {
+            font: { size: 9 },
+            callback: function(val, idx) {
+              const lbl = zLabels[idx] || '';
+              return lbl.length > 28 ? lbl.slice(0, 26) + '…' : lbl;
+            }
+          },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+})();
 <\/script>
 ${chartScript(pw.categories.map(e => e.label), pw.categories.map(e => e.count), lw.categories.map(e => e.label), lw.categories.map(e => e.count), PW_CLR, PRIMARY, 'orders')}`;
 
