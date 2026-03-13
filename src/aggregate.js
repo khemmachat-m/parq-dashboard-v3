@@ -28,6 +28,12 @@ export function getEventLabel(row) {
   if (/แอร์|หนาว|ร้อน|อุณหภูมิ|สลับแอร์|ตรวจเช็คแอร์|ปรับอุณหภูมิ/i.test(txt))   return 'Aircon / Temperature';
   if (/aircon|a\.c\.|a\/c|temperature|cooling|hvac|chiller/i.test(txt))             return 'Aircon / Temperature';
 
+  // ── Air Quality / Environment ─────────────────────────────────────
+  if (/pm 2\.5|pm2\.5|ระบายกลิ่น|กลิ่น|air quality/i.test(txt))        return 'Air Quality';
+
+  // ── Lighting (catch missed patterns) ─────────────────────────────
+  if (/ไฟเพดาน|ไฟหลืบ|ไฟเส้น|ไฟหน้า/i.test(txt))                        return 'Lighting Faulty';
+
   // ── Lighting (Thai + English) ────────────────────────────────────
   if (/โคมไฟ|ไฟดับ|ไฟไม่ติด|ไฟไม่มี|แสงสว่าง|หลอดไฟ/i.test(txt))                   return 'Lighting Faulty';
   if (/light|lamp|bulb|luminaire|led|fluorescent/i.test(txt))                         return 'Lighting Faulty';
@@ -39,6 +45,9 @@ export function getEventLabel(row) {
   // ── Water Leak / Plumbing (Thai + English) ───────────────────────
   if (/น้ำหยด|น้ำรั่ว|น้ำไหล|น้ำท่วม|ท่อน้ำ|คราบน้ำ|พื้นเปียก/i.test(txt))        return 'Water Leak / Plumbing';
   if (/water|leak|plumb|drain|pipe|flood|overflow/i.test(txt))                        return 'Water Leak / Plumbing';
+
+  // ── Water Overflow (missed by current pattern) ────────────────────
+  if (/น้ำเอ่อ|น้ำล้น|ท่อตัน|ท่อระบาย/i.test(txt))                      return 'Water Leak / Plumbing';
 
   // ── Lift / Escalator (Thai + English) ───────────────────────────
   if (/ลิฟต์|ลิฟท์|บันไดเลื่อน/i.test(txt))                                          return 'Lift / Elevator';
@@ -71,6 +80,12 @@ export function getEventLabel(row) {
 
   // ── Pest Control ─────────────────────────────────────────────────
   if (/แมลง|หนู|แมลงสาบ|pest|insect|rodent|cockroach|rat/i.test(txt))                return 'Pest Control';
+  
+  // ── Structural / Fixture ──────────────────────────────────────────
+  if (/หลุด|ร่วง|แตก|ชำรุด|เสียหาย|ครอบ|สแตนเลส|อะลูมิเนียม/i.test(txt)) return 'Structural / Fixture';
+
+  // ── Electrical / Wiring ───────────────────────────────────────────
+  if (/สายไฟ|สายไฟตก|แผงไฟ/i.test(txt))                                  return 'Electrical';
 
   return 'Other';
 }
