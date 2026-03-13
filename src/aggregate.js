@@ -173,6 +173,69 @@ export function getPPMMainCategoryLabel(row) {
   return SOFT.has(task) ? 'Soft Service' : 'Hard Service';
 }
 
+// ─── LOCATION_CUSTOM HELPERS ─────────────────────────────────────────────────
+
+export function extractPPMFloor(title) {
+  const t = (title || '').trim();
+  let m = t.match(/\b(B?\d+|Roof|R)\s*[-–]\s*(B?\d+|Roof|R)\s+Floor\b/i);
+  if (m) return `${m[1].toUpperCase()}-${m[2].toUpperCase()} Floor`;
+  m = t.match(/\b(\d{1,2})\s+Floor\b/i);
+  if (m) return `${m[1]}F`;
+  m = t.match(/\b(\d{1,2})(?:st|nd|rd|th)\s+Floor\b/i);
+  if (m) return `${m[1]}F`;
+  m = t.match(/\b(\d{1,2})F\b/i);
+  if (m) return `${m[1]}F`;
+  m = t.match(/\b(B\d+[A-Z]?)\b/i);
+  if (m) return m[1].toUpperCase();
+  if (/\bRoof(?:top)?\b/i.test(t)) return 'Roof';
+  if (/\bLMR\b/i.test(t)) return 'LMR';
+  if (/\bLM\s+Floor\b/i.test(t)) return 'LM';
+  m = t.match(/ชั้น\s*(\d+)/);
+  if (m) return `${m[1]}F`;
+  return '';
+}
+
+export function extractPPMRoom(title) {
+  const tl = (title || '').toLowerCase();
+  const rooms = [];
+  if (/\btoilet/.test(tl))                 rooms.push('Toilet');
+  if (/\bcommon\s+area\b/.test(tl))        rooms.push('Common Area');
+  if (/\bperimeter\b/.test(tl))            rooms.push('Perimeter');
+  if (/\bq[\s-]*garden\b/.test(tl))        rooms.push('Q Garden');
+  else if (/\bgarden\b/.test(tl))          rooms.push('Garden');
+  if (/\bcarpark\b|car\s*park\b/.test(tl)) rooms.push('Carpark');
+  if (/\bpantry\b/.test(tl))              rooms.push('Pantry');
+  if (/\bahu\d?\s*room\b/.test(tl))        rooms.push('AHU Room');
+  if (/\bee\s*room\b/.test(tl))            rooms.push('EE Room');
+  if (/\bsystem\s*room\b/.test(tl))        rooms.push('System Room');
+  if (/\blobby\b/.test(tl))               rooms.push('Lobby');
+  if (/\bretail\b/.test(tl))              rooms.push('Retail');
+  if (/\bfood\s*street\b/.test(tl))        rooms.push('Food Street');
+  if (/\bpavilion\b/.test(tl))            rooms.push('Pavilion');
+  if (/\bpool|fountain\b/.test(tl))        rooms.push('Pool/Fountain');
+  if (/\brooftop\b/.test(tl))             rooms.push('Rooftop');
+  return rooms.join(', ');
+}
+
+export function extractPPMZone(title) {
+  const tl = (title || '').toLowerCase();
+  const zones = [];
+  if (/\beast\s+wing\b/.test(tl))    zones.push('East Wing');
+  else if (/\beast\b/.test(tl))      zones.push('East');
+  if (/\bwest\s+wing\b/.test(tl))    zones.push('West Wing');
+  else if (/\bwest\b/.test(tl))      zones.push('West');
+  if (/\btower\s+e\b/.test(tl))      zones.push('Tower E');
+  if (/\btower\s+w\b/.test(tl))      zones.push('Tower W');
+  return zones.join(', ');
+}
+
+export function getLocationCustom(row) {
+  const title = row.MasterWorkOrderTitle || row.Name || row.Title || '';
+  const parts = [extractPPMFloor(title), extractPPMRoom(title), extractPPMZone(title)]
+    .filter(Boolean);
+  return parts.join(' | ');
+}
+
 // ─── STATUS & SLA HELPERS ────────────────────────────────────────────────────
 
 /** Detect closed / cancelled / active status from a CWO or Cases row */
@@ -285,7 +348,6 @@ export function aggregatePPM(rows) {
     const freq = r.FrequencyType_Name || r.FrequencyId || 'Unknown';
     freqCounts[freq] = (freqCounts[freq] || 0) + 1;
 
-    // Group by Location_Custom (Floor | Room | Zone) — blank → 'Building-wide'
     const zone = (r.Location_Custom || '').trim() || 'Building-wide';
     zoneCounts[zone] = (zoneCounts[zone] || 0) + 1;
 
