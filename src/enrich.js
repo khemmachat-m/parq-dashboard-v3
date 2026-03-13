@@ -37,7 +37,7 @@ export function enrichCases(rows, M) {
 }
 
 export function enrichCWO(rows, M) {
-  const { priority, location, assetByTag, problemType } = M;
+  const { priority, location, asset, problemType } = M;
   return rows.map(row => {
     const out = { ...row };
     const p = lookup(priority, row.PriorityId);
