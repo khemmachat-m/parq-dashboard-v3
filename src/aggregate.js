@@ -116,12 +116,13 @@ export function getPPMTaskCategoryLabel(row) {
   if (/pest control|termite/i.test(tl))                                         return 'Pest Control';
   if (/water plant|รดน้ำ|trim branch|ตัดแต่ง|ground cover|พืชคลุม|remove weed|กำจัดวัชพืช|fertiliz|ปุ๋ย|planting|เพราะชำ|restore ground|ปลูกซ่อม|rental plant|ดูแลรักษาต้นไม้|loosening the soil|inspect every stake|replace the herb|พรวนดิน|chemicals for disease|ป้องกันโรค/i.test(tl)) return 'Horticulture';
   if (/operate team work schedule/i.test(tl))                                   return 'Operations Scheduling';
-  // ── Cleaning sub-types (Toilet checked before Carpark — "Car Park Toilet Cleaning" → Toilet) ──
+  // ── Cleaning sub-types (Toilet checked first — "Car Park Toilet Cleaning" → Toilet) ──
   if (/cleaning|clean ahu room|ทำความสะอาดห้องเครื่อง/i.test(tl)) {
     if (/toilet/i.test(tl))                                                     return 'Cleaning - Toilet';
     if (/car park|carpark/i.test(tl))                                           return 'Cleaning - Carpark';
     if (/common area/i.test(tl))                                                return 'Cleaning - Common Area';
     if (/ahu|clean ahu|ทำความสะอาดห้องเครื่อง/i.test(tl))                      return 'Cleaning - AHU Room';
+    if (/\d+f\b/i.test(tl))                                                     return 'Cleaning - Floor';
     return 'Cleaning';
   }
 
@@ -166,7 +167,7 @@ export function getPPMTaskCategoryLabel(row) {
 export function getPPMMainCategoryLabel(row) {
   const task = getPPMTaskCategoryLabel(row);
   const SOFT = new Set(['Cleaning', 'Cleaning - Toilet', 'Cleaning - Carpark',
-                        'Cleaning - Common Area', 'Cleaning - AHU Room',
+                        'Cleaning - Common Area', 'Cleaning - AHU Room', 'Cleaning - Floor',
                         'Pest Control', 'Horticulture', 'Operations Scheduling']);
   if (task === 'TEST / Demo') return 'TEST / Demo';
   return SOFT.has(task) ? 'Soft Service' : 'Hard Service';
