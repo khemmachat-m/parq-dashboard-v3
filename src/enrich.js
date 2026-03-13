@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════
 import { S } from './state.js';
 import { lookup } from './masters.js';
+import { getEventLabel } from './aggregate.js';
 
 export function enrichCases(rows, M) {
   const { priority, location, assetByTag, eventTypeByCode } = M;
@@ -65,6 +66,8 @@ export function enrichCWO(rows, M) {
     const pt = lookup(problemType, row.ProblemTypeId);
     if (pt.Code)        out.ProblemType_Code        = pt.Code;
     if (pt.Description) out.ProblemType_Description = pt.Description;
+    // Keyword-matched problem type label — user can review/correct in the CSV
+    out.ProblemType_Name = getEventLabel(out);
     return out;
   });
 }

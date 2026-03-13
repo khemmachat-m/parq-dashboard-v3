@@ -70,7 +70,10 @@ export function aggregateCWO(rows) {
     priCounts[pri] = (priCounts[pri] || 0) + 1;
     const loc = r.TopLocation_Name || r.Location_Name || r.LocationId || 'Unknown';
     locCounts[loc] = (locCounts[loc] || 0) + 1;
-    const evt = getEventLabel(r);
+    // Use saved ProblemType_Name from enriched CSV if available, else keyword-match
+    const evt = (r.ProblemType_Name && r.ProblemType_Name !== 'Other')
+      ? r.ProblemType_Name
+      : getEventLabel(r);
     evtCounts[evt] = (evtCounts[evt] || 0) + 1;
     const assetName = r.Asset_Name || '';
     const assetLoc  = r.Location_FullName || '';
